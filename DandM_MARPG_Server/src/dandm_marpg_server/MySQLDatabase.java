@@ -14,4 +14,9 @@ public class MySQLDatabase {
     private String user = "";
     private String password = "";
     
+    private void MySQLDatabase()
+    {
+        
+    }
+    
 }
