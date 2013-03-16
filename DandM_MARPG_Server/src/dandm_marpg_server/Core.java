@@ -24,6 +24,10 @@ public class Core {
     
     private String username = "";
     private String password = "";
+    private int maxHealth = 0;
+    private int currentHealth = 0;
+    private boolean loggedIn = false;
+    
     
     
     
@@ -49,7 +53,7 @@ public class Core {
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
             clientSentence = inFromClient.readLine();
-            System.out.println("Received: " + clientSentence);
+            System.out.println("Received: " + clientSentence + " from: " + connectionSocket.getInetAddress());
             if (clientSentence.startsWith("login"))
             {
                 String[] str_array = clientSentence.split(" ");
@@ -59,6 +63,7 @@ public class Core {
                     {
                         if (password.contentEquals(sha512Hash(str_array[2])))
                         {
+                            loggedIn = true;
                             outToClient.writeBytes("You are now logged in!" + '\n');
                         }
                         else
@@ -85,6 +90,8 @@ public class Core {
                     {
                         username = str_array[1];
                         password = sha512Hash(str_array[2]);
+                        maxHealth = 100;
+                        currentHealth = maxHealth;
                         outToClient.writeBytes("Successfully registered " + username + '\n');
                     }
                     else
@@ -95,6 +102,26 @@ public class Core {
                 else
                 {
                     outToClient.writeBytes("Invalid Registration!" + '\n');
+                }
+            }
+            else if (clientSentence.startsWith("currentHealth"))
+            {
+                if (loggedIn)
+                {
+                    outToClient.writeBytes("Current Health: " + currentHealth + '\n');
+                }
+            }
+            else if (clientSentence.startsWith("causeDamage"))
+            {
+                if (loggedIn)
+                {
+                    String[] str_array = clientSentence.split(" ");
+                    if (str_array.length == 2)
+                    {
+                        int foo = Integer.parseInt(str_array[1]);
+                        damageHealth(foo);
+                        outToClient.writeBytes("Current Health: " + currentHealth + '\n');
+                    }
                 }
             }
             else
@@ -126,6 +153,33 @@ public class Core {
         }
         output = sha512Hash.toString();
         return output;
+    }
+    
+    public void damageHealth(int damage)
+    {
+        if (!isDead())
+        {
+            if ((currentHealth - damage) > 0)
+            {
+                currentHealth = currentHealth - damage;
+            }
+            else
+            {
+                currentHealth = 0;
+            }
+        }
+    }
+    
+    public boolean isDead()
+    {
+        if (currentHealth <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
     
 }
