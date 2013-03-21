@@ -21,10 +21,16 @@ import java.util.logging.Logger;
  */
 public class NetworkCommunicationThread implements Runnable {
 
-    private Socket welcomeSocket;
-    private Core core;
-    private MySQLDatabase databaseInterface;
+    private Socket welcomeSocket; //Socket that we have accepted with the information sent from the client
+    private Core core; //reference to the Core class, should be removed in later versions
+    private MySQLDatabase databaseInterface; //the single database interface we created in the construction of the Core class
     
+    /**
+     * Constructor for the NetworkCommunicationThread
+     * @param core The main class of the server, should be removed in future versions
+     * @param socket The socket and information sent by the client ready for processing
+     * @author Dajne Win
+     */
     public NetworkCommunicationThread(Core core, Socket socket)
     {
         databaseInterface = core.databaseInterface;
@@ -32,6 +38,10 @@ public class NetworkCommunicationThread implements Runnable {
         welcomeSocket = socket;
     }
     
+    /**
+     * The threaded part of the network communication, this is done to prevent I/O blocking so that multiple clients can have commands processed at once
+     * @author Dajne Win
+     */
     @Override
     public void run() {
         try {
@@ -40,51 +50,51 @@ public class NetworkCommunicationThread implements Runnable {
             Socket connectionSocket = welcomeSocket;
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-            clientSentence = inFromClient.readLine();
+            clientSentence = inFromClient.readLine(); //gets the input from the client
             if (connectionSocket.getInetAddress() != null)
             {
                 System.out.println("Received: " + clientSentence + " from: " + connectionSocket.getInetAddress());
             }
-            if (clientSentence.startsWith("login"))
+            if (clientSentence.startsWith("login")) //if the client commands begins with login, format should be "login username password", user will not end up entering this info manually
             {
                 
-                String[] str_array = clientSentence.split(" ");
-                if (str_array.length == 3)
+                String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
+                if (str_array.length == 3) //if we have recieved three strings, no more no less
                 {
-                    if (databaseInterface.loginMySQL(str_array[1], str_array[2]))
+                    if (databaseInterface.loginMySQL(str_array[1], str_array[2])) //check the username and password against the database
                     {
-                        outToClient.writeBytes("You are now logged in!" + '\n');
+                        outToClient.writeBytes("You are now logged in!" + '\n'); //send a message to client if login is successful
                     }
                     else
                     {
-                        outToClient.writeBytes("Failed to log in!" + '\n');
-                    }
-                }
-            }
-            else if (clientSentence.startsWith("register"))
-            {
-                String[] str_array = clientSentence.split(" ");
-                if (str_array.length == 3)
-                {
-                    if (str_array[1].length() > 3 && str_array[2].length() > 3)
-                    {
-                        core.username = str_array[1];
-                        core.password = sha512Hash(str_array[2]);
-                        core.maxHealth = 100;
-                        core.currentHealth = core.maxHealth;
-                        outToClient.writeBytes("Successfully registered " + core.username + '\n');
-                    }
-                    else
-                    {
-                        outToClient.writeBytes("Problem with Registration!" + '\n');
+                        outToClient.writeBytes("Failed to log in!" + '\n'); //send a message to client if login was unsuccessful, doesn't take into account why (could be wrong password, username, database connection broken etc)
                     }
                 }
                 else
                 {
-                    outToClient.writeBytes("Invalid Registration!" + '\n');
+                    outToClient.writeBytes("Incorrect format! Format = login username password" + '\n'); //send mesaage to client if the command wasn't in the correct form
                 }
             }
-            else if (clientSentence.startsWith("currentHealth"))
+            else if (clientSentence.startsWith("register")) //if the client commands begins with register, format should be "register username password"
+            {
+                String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
+                if (str_array.length == 3) //if we have recieved three strings, no more no less
+                {
+                    if (databaseInterface.registerMySQL(str_array[1], str_array[2])) //attempt to register the username and password in the database
+                    {
+                        outToClient.writeBytes("You are now registered, please log in!" + '\n'); //send a message to client if registration was successful
+                    }
+                    else
+                    {
+                        outToClient.writeBytes("Failed to register!" + '\n'); //send a message to client if registration failed, like the login this could be client or server side problems at this stage
+                    }
+                }
+                else
+                {
+                    outToClient.writeBytes("Incorrect format! Format = register username password" + '\n'); //send mesaage to client if the command wasn't in the correct form
+                }
+            }
+            /*else if (clientSentence.startsWith("currentHealth"))
             {
                 if (core.loggedIn)
                 {
@@ -103,7 +113,7 @@ public class NetworkCommunicationThread implements Runnable {
                         outToClient.writeBytes("Current Health: " + core.currentHealth + '\n');
                     }
                 }
-            }
+            }*/
             else
             {
                 outToClient.writeBytes("Invalid Command!" + '\n');
@@ -113,6 +123,12 @@ public class NetworkCommunicationThread implements Runnable {
         }
     }
     
+    /**
+     * Creates a hash from a plaintext password so that passwords are not stored or checked in plaintext
+     * @author Dajne Win
+     * @param String stringToHash
+     * @return String HashedPassword
+     */
     private String sha512Hash(String stringToHash)
     {
         String output = "";
@@ -137,7 +153,7 @@ public class NetworkCommunicationThread implements Runnable {
         return output;
     }
     
-    public void damageHealth(int damage)
+    /*public void damageHealth(int damage)
     {
         if (!isDead())
         {
@@ -162,6 +178,6 @@ public class NetworkCommunicationThread implements Runnable {
         {
             return false;
         }
-    }
+    }*/
     
 }

@@ -16,18 +16,16 @@ import java.util.logging.Logger;
  */
 public class Core {
     
-    public String username = "";
-    public String password = "";
-    public int maxHealth = 0;
-    public int currentHealth = 0;
-    public boolean loggedIn = false;
     public MySQLDatabase databaseInterface;
     
     
-    
+    /**
+     * Constructor for the core of the server, creates the thread to start listening and the database connection
+     * @author Dajne Win
+     */
     public Core()
     {
-        databaseInterface = new MySQLDatabase();
+        databaseInterface = new MySQLDatabase(); //creates a new database object that all threads will pool into
         try {
             startListening();
         } catch (IOException ex) {
@@ -37,16 +35,15 @@ public class Core {
     
     private void startListening() throws IOException
     {
-        String clientSentence;
-        String capitalizedSentence;
-        ServerSocket welcomeSocket = new ServerSocket(6789);
+        ServerSocket welcomeSocket = new ServerSocket(6789); //starts the server listening on a socket, at this stage 6789
         
         while(true)
         {
-            Socket connectionSocket = welcomeSocket.accept();
-            NetworkCommunicationThread netThread = new NetworkCommunicationThread(this, connectionSocket);
-            Thread thread = new Thread(netThread);
-            thread.start();
+            Socket connectionSocket = welcomeSocket.accept(); //when information comes in through that socket accept it for processing
+            NetworkCommunicationThread netThread = new NetworkCommunicationThread(this, connectionSocket); //Create a new Communication Class to thread
+            Thread thread = new Thread(netThread); //Create a new network communication thread to process this information
+            thread.start(); //Start the network communication thread
+            //while true/while the server program is running it will continue to loop this thread waiting for more instructions to process from clients
         }
     }
     
