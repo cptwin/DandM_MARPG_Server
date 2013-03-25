@@ -36,7 +36,9 @@ public class MySQLDatabase {
     {
         boolean success = false;
         Connection con = null;
+        Connection con2 = null;
         Statement st = null;
+        Statement st2 = null;
         ResultSet rs = null;
         try {
             con = DriverManager.getConnection(dburl, dbuser, dbpassword);
@@ -55,7 +57,51 @@ public class MySQLDatabase {
                     }
                 }
             }
+            if (success)
+            {
+                con2 = DriverManager.getConnection(dburl, dbuser, dbpassword);
+                st2 = con.createStatement();
+                st2.executeUpdate("UPDATE users SET loggedIn=1 WHERE username='" + username + "'");
+            }
 
+        } catch (SQLException ex) {
+            Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (con2 != null) {
+                    con2.close();
+                }
+                if (st2 != null) {
+                    st2.close();
+                }
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return success;
+    }
+    
+    public boolean resetIsLoggedIn()
+    {
+        boolean success = false;
+        Connection con = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            con = DriverManager.getConnection(dburl, dbuser, dbpassword);
+            st = con.createStatement();
+            st.executeUpdate("UPDATE users SET loggedIn=0 WHERE loggedIn=1");
+            success = true;
         } catch (SQLException ex) {
             Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
         } finally {

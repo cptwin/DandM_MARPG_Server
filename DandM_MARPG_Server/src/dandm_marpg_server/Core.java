@@ -26,10 +26,17 @@ public class Core {
     public Core()
     {
         databaseInterface = new MySQLDatabase(); //creates a new database object that all threads will pool into
-        try {
-            startListening();
-        } catch (IOException ex) {
-            Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+        if (databaseInterface.resetIsLoggedIn())
+        {
+            try {
+                startListening();
+            } catch (IOException ex) {
+                Logger.getLogger(Core.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else
+        {
+            System.out.println("Error resetting loggedIn or connecting to database!");
         }
     }
     
