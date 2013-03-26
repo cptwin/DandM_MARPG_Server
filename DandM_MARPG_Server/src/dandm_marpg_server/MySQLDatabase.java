@@ -32,9 +32,9 @@ public class MySQLDatabase {
      * @param String password
      * @return true if logging in for that player was successful
      */
-    public boolean loginMySQL(String username, String password)
+    public int loginMySQL(String username, String password)
     {
-        boolean success = false;
+        int success = 0;
         Connection con = null;
         Connection con2 = null;
         Statement st = null;
@@ -48,16 +48,30 @@ public class MySQLDatabase {
                 String user_name = rs.getString("username");
                 if (username.equals(user_name))
                 {
-                    System.out.println("Username Found in Database!");
-                    String user_password = rs.getString("password");
-                    success = checkHash(password, user_password);
-                    if (success)
-                    {
-                        System.out.println("Password is correct!");
+                    if (rs.getInt("loggedIn") == 1) {
+                        success = 97; //97 already logged in
+
+                    } else {
+                        System.out.println("Username Found in Database!");
+                        String user_password = rs.getString("password");
+                        if (checkHash(password, user_password)) {
+                            success = 99; //99 means pass correct
+                        } else {
+                            success = 98; //98 means pass incorrect
+                        }
+                        
+                        if (success == 99) { //99 means pass correct
+                            System.out.println("Password is correct!");
+                        } else if ( success == 98) { //98 means pass incorrect
+                            System.out.println("Password is incorrect!");
+                        } else if (success == 97) { //97 already logged in
+                            System.out.println("User is already logged in!");
+                        }
                     }
+
                 }
             }
-            if (success)
+            if (success == 99)
             {
                 con2 = DriverManager.getConnection(dburl, dbuser, dbpassword);
                 st2 = con.createStatement();

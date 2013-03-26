@@ -61,13 +61,23 @@ public class NetworkCommunicationThread implements Runnable {
                 String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
                 if (str_array.length == 3) //if we have recieved three strings, no more no less
                 {
-                    if (databaseInterface.loginMySQL(str_array[1], str_array[2])) //check the username and password against the database
+                    int successErrorCode = databaseInterface.loginMySQL(str_array[1], str_array[2]); //check the username and password against the database
+                    if (successErrorCode == 99 ) // 99 = login successful
                     {
                         outToClient.writeBytes("You are now logged in!" + '\n'); //send a message to client if login is successful
                     }
-                    else
+                    else if (successErrorCode == 97) //97 = already logged in
                     {
-                        outToClient.writeBytes("Failed to log in!" + '\n'); //send a message to client if login was unsuccessful, doesn't take into account why (could be wrong password, username, database connection broken etc)
+                        outToClient.writeBytes("User already logged in!" + '\n'); //send a message to client if login was unsuccessful, doesn't take into account why (could be wrong password, username, database connection broken etc)
+                    }
+                    else if (successErrorCode == 98) {
+                        outToClient.writeBytes("Password is incorrect" + '\n');
+                    } 
+                    else if (successErrorCode == 0) {
+                        outToClient.writeBytes("No such user" + '\n');
+                    } 
+                    else {
+                        outToClient.writeBytes("Some other error" + '\n');
                     }
                 }
                 else
