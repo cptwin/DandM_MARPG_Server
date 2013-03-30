@@ -46,7 +46,7 @@ public class MySQLDatabase {
             rs = st.executeQuery("SELECT * FROM users");
             while (rs.next()) {
                 String user_name = rs.getString("username");
-                if (username.equals(user_name))
+                if (username.toLowerCase().equals(user_name))
                 {
                     if (rs.getInt("loggedIn") == 1) {
                         success = 97; //97 already logged in
@@ -154,7 +154,7 @@ public class MySQLDatabase {
             rs = st.executeQuery("SELECT * FROM users");
             while (rs.next()) {
                 String user_name = rs.getString("username");
-                if (username.equals(user_name))
+                if (username.toLowerCase().equals(user_name))
                 {
                     success = true;
                     System.out.println("Username is Registered!");
@@ -200,7 +200,7 @@ public class MySQLDatabase {
             {    
                 con = DriverManager.getConnection(dburl, dbuser, dbpassword);
                 PreparedStatement ps = con.prepareStatement("INSERT INTO `" + "users" + "` (`username`, `password`, `maxHealth`, `currentHealth`, `loggedIn`)  VALUES (?, ?, ?, ?, ?)", 1);
-                ps.setString(1, username);
+                ps.setString(1, username.toLowerCase());
                 ps.setString(2, passwordHash);
                 ps.setInt(3, 100);
                 ps.setInt(4, 100);
