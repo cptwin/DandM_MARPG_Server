@@ -7,6 +7,9 @@ package dandm_marpg_server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +20,7 @@ import java.util.logging.Logger;
 public class Core {
     
     public MySQLDatabase databaseInterface;
+    private HashSet<Entities> entities;
     
     
     /**
@@ -25,6 +29,7 @@ public class Core {
      */
     public Core()
     {
+        this.entities = new HashSet();
         databaseInterface = new MySQLDatabase(); //creates a new database object that all threads will pool into
         if (databaseInterface.resetIsLoggedIn())
         {
@@ -40,9 +45,28 @@ public class Core {
         }
     }
     
+    public synchronized void addToEntityArray(Entities e)
+    {
+        entities.add(e);
+    }
+    
+    public synchronized void removeFromEntityArray(Entities e)
+    {
+        entities.remove(e);
+    }
+    
+    public synchronized HashSet<Entities> returnEntityArray()
+    {
+        return entities;
+    }
+    
     private void startListening() throws IOException
     {
         ServerSocket welcomeSocket = new ServerSocket(6789); //starts the server listening on a socket, at this stage 6789
+        
+        TimerTask task = new ScheduledTask(databaseInterface, this);
+        Timer timer = new Timer();
+    	timer.schedule(task, 10000,10000);
         
         while(true)
         {

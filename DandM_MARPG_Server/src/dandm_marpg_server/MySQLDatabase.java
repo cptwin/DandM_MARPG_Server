@@ -105,6 +105,38 @@ public class MySQLDatabase {
         return success;
     }
     
+    public boolean logoutUser(String username)
+    {
+        boolean success = false;
+        Connection con = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            con = DriverManager.getConnection(dburl, dbuser, dbpassword);
+            st = con.createStatement();
+            st.executeUpdate("UPDATE users SET loggedIn=0 WHERE username='" + username.toLowerCase() + "'");
+            success = true;
+        } catch (SQLException ex) {
+            Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+
+            } catch (SQLException ex) {
+                Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return success;
+    }
+    
     public boolean resetIsLoggedIn()
     {
         boolean success = false;

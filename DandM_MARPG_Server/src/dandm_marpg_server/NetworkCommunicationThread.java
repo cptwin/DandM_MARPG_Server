@@ -65,6 +65,8 @@ public class NetworkCommunicationThread implements Runnable {
                     if (successErrorCode == 99 ) // 99 = login successful
                     {
                         outToClient.writeBytes("You are now logged in!" + '\n'); //send a message to client if login is successful
+                        Player player = new Player(str_array[1].toLowerCase(),databaseInterface);
+                        core.addToEntityArray(player);
                     }
                     else if (successErrorCode == 97) //97 = already logged in
                     {
@@ -104,26 +106,25 @@ public class NetworkCommunicationThread implements Runnable {
                     outToClient.writeBytes("Incorrect format! Format = register username password" + '\n'); //send mesaage to client if the command wasn't in the correct form
                 }
             }
-            /*else if (clientSentence.startsWith("currentHealth"))
+            else if (clientSentence.startsWith("move")) //if the client commands begins with register, format should be "register username password"
             {
-                if (core.loggedIn)
+                String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
+                if (str_array.length == 4) //if we have recieved three strings, no more no less
                 {
-                    outToClient.writeBytes("Current Health: " + core.currentHealth + '\n');
-                }
-            }
-            else if (clientSentence.startsWith("causeDamage"))
-            {
-                if (core.loggedIn)
-                {
-                    String[] str_array = clientSentence.split(" ");
-                    if (str_array.length == 2)
-                    {
-                        int foo = Integer.parseInt(str_array[1]);
-                        damageHealth(foo);
-                        outToClient.writeBytes("Current Health: " + core.currentHealth + '\n');
+                    for (Entities e : core.returnEntityArray()) {
+                        if (e instanceof Player) {
+                            Player player = (Player)e;
+                            if(player.getName().equals(str_array[1]))
+                            {
+                                player.setXCoOrd(Integer.parseInt(str_array[2]));
+                                player.setYCoOrd(Integer.parseInt(str_array[3]));
+                                player.updateTimestamp();
+                                System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
+                            }
+                        }
                     }
                 }
-            }*/
+            }
             else
             {
                 outToClient.writeBytes("Invalid Command!" + '\n');
