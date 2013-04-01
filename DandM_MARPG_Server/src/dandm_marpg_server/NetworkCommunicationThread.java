@@ -111,17 +111,23 @@ public class NetworkCommunicationThread implements Runnable {
                 String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
                 if (str_array.length == 4) //if we have recieved three strings, no more no less
                 {
-                    for (Entities e : core.returnEntityArray()) {
-                        if (e instanceof Player) {
-                            Player player = (Player)e;
-                            if(player.getName().equals(str_array[1]))
-                            {
-                                player.setXCoOrd(Integer.parseInt(str_array[2]));
-                                player.setYCoOrd(Integer.parseInt(str_array[3]));
-                                player.updateTimestamp();
-                                System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
+                    if (databaseInterface.isLoggedIn(str_array[1])) {
+                        for (Entities e : core.returnEntityArray()) {
+                            if (e instanceof Player) {
+                                Player player = (Player) e;
+                                if (player.getName().equals(str_array[1])) {
+                                    player.setXCoOrd(Integer.parseInt(str_array[2]));
+                                    player.setYCoOrd(Integer.parseInt(str_array[3]));
+                                    player.updateTimestamp();
+                                    outToClient.writeBytes("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd() + '\n');
+                                    System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
+                                }
                             }
                         }
+                    }
+                    else
+                    {
+                        outToClient.writeBytes("Timed Out!" + '\n');
                     }
                 }
             }

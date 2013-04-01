@@ -137,6 +137,48 @@ public class MySQLDatabase {
         return success;
     }
     
+    public boolean isLoggedIn(String username)
+    {
+        boolean success = false;      
+        Connection con = null;
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            con = DriverManager.getConnection(dburl, dbuser, dbpassword);
+            st = con.createStatement();
+            rs = st.executeQuery("SELECT * FROM users");
+            while (rs.next()) {
+                String user_name = rs.getString("username");
+                if (username.toLowerCase().equals(user_name))
+                {
+                    if (rs.getInt("loggedIn") == 1)
+                    {
+                        success = true;
+                        break;
+                    }
+                }
+            }
+        }
+        catch (SQLException ex) {
+            Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(MySQLDatabase.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return success;
+    }
+    
     public boolean resetIsLoggedIn()
     {
         boolean success = false;
