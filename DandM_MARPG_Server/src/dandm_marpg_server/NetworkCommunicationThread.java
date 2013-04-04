@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
@@ -130,6 +131,18 @@ public class NetworkCommunicationThread implements Runnable {
                         outToClient.writeBytes("Timed Out!" + '\n');
                     }
                 }
+            }
+            else if (clientSentence.startsWith("otherplayers"))
+            {
+                String playersToClient = "otherplayers";
+                for (Entities e : core.returnEntityArray()) {
+                            if (e instanceof Player) {
+                                Player player = (Player) e;
+                                playersToClient += player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd() + " ";
+                            }
+                }
+                System.out.println(playersToClient);
+                outToClient.writeBytes(playersToClient + '\n');
             }
             else
             {
