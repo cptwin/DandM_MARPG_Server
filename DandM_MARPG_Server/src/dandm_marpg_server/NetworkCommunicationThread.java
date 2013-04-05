@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
@@ -112,7 +111,8 @@ public class NetworkCommunicationThread implements Runnable {
                 String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
                 if (str_array.length == 4) //if we have recieved three strings, no more no less
                 {
-                    if (databaseInterface.isLoggedIn(str_array[1])) {
+                    if (databaseInterface.isLoggedIn(str_array[1])) { //checks if the player is still logged in/responding
+                        String playersToClient = "";
                         for (Entities e : core.returnEntityArray()) {
                             if (e instanceof Player) {
                                 Player player = (Player) e;
@@ -120,11 +120,23 @@ public class NetworkCommunicationThread implements Runnable {
                                     player.setXCoOrd(Integer.parseInt(str_array[2]));
                                     player.setYCoOrd(Integer.parseInt(str_array[3]));
                                     player.updateTimestamp();
-                                    outToClient.writeBytes("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd() + '\n');
-                                    System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
+                                    playersToClient += "move" + player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd();
+                                    //outToClient.writeBytes("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd() + '\n');
+                                    //System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
+                                    
                                 }
                             }
                         }
+                        for (Entities e : core.returnEntityArray()) {
+                            if (e instanceof Player) {
+                                Player player = (Player) e;
+                                if (!player.getName().equals(str_array[1])) {
+                                    playersToClient += "%otherplayer" + player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd();
+                                }
+                            }                            
+                        }
+                        outToClient.writeBytes(playersToClient + '\n');
+                        System.out.println(playersToClient);
                     }
                     else
                     {
@@ -141,7 +153,7 @@ public class NetworkCommunicationThread implements Runnable {
                                 playersToClient += player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd() + " ";
                             }
                 }
-                System.out.println(playersToClient);
+                //System.out.println(playersToClient);
                 outToClient.writeBytes(playersToClient + '\n');
             }
             else
