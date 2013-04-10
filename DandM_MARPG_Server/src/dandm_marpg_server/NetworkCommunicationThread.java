@@ -111,15 +111,39 @@ public class NetworkCommunicationThread implements Runnable {
                 String[] str_array = clientSentence.split(" "); //split the string into, hopefully, three strings using the space to seperate each string
                 if (str_array.length == 4) //if we have recieved three strings, no more no less
                 {
-                    if (databaseInterface.isLoggedIn(str_array[1])) { //checks if the player is still logged in/responding
+                    Player checkedPlayer = null;
+                    for (Entities e : core.returnEntityArray()) {
+                            if (e instanceof Player) {
+                                Player playerCheck = (Player) e;
+                                if (playerCheck.getName().equals(str_array[1])) {
+                                    checkedPlayer = playerCheck;
+                                }
+                            }
+                    }
+                    if (checkedPlayer != null && !checkedPlayer.timedOut()) { //checks if the player is still logged in/responding
                         String playersToClient = "";
                         for (Entities e : core.returnEntityArray()) {
                             if (e instanceof Player) {
                                 Player player = (Player) e;
                                 if (player.getName().equals(str_array[1])) {
-                                    player.setXCoOrd(Integer.parseInt(str_array[2]));
-                                    player.setYCoOrd(Integer.parseInt(str_array[3]));
-                                    player.updateTimestamp();
+                                    boolean allowMove = true;
+                                    for (Entities e2 : core.returnEntityArray())
+                                    {
+                                        if(e2 instanceof Player)
+                                        {
+                                            Player player2 = (Player)e2;
+                                            if(player2.getXCoOrd() == Integer.parseInt(str_array[2]) && player2.getYCoOrd() == Integer.parseInt(str_array[3]))
+                                            {
+                                                allowMove = false;
+                                            }
+                                        }
+                                    }
+                                    if(allowMove)
+                                    {
+                                        player.setXCoOrd(Integer.parseInt(str_array[2]));
+                                        player.setYCoOrd(Integer.parseInt(str_array[3]));
+                                        player.updateTimestamp();
+                                    }
                                     playersToClient += "move" + player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd();
                                     //outToClient.writeBytes("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd() + '\n');
                                     //System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
@@ -142,6 +166,27 @@ public class NetworkCommunicationThread implements Runnable {
                     {
                         outToClient.writeBytes("Timed Out!" + '\n');
                     }
+                }
+            }
+            else if (clientSentence.startsWith("ping"))
+            {
+                System.out.println(clientSentence);
+                String[] str_array = clientSentence.split(" ");
+                if (str_array.length == 2)
+                {
+                    for (Entities e : core.returnEntityArray()) {
+                            if (e instanceof Player) {
+                                Player player = (Player) e;
+                                if (player.getName().equals(str_array[1])) {
+                                    player.updateTimestamp();
+                                    outToClient.writeBytes("Pong" + '\n');
+                                }
+                            }
+                    }
+                }
+                else
+                {
+                    outToClient.writeBytes("Pong" + '\n');
                 }
             }
             else if (clientSentence.startsWith("otherplayers"))
