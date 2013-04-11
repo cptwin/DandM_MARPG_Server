@@ -200,10 +200,17 @@ public class NetworkCommunicationThread implements Runnable {
                 }
                 //System.out.println(playersToClient);
                 outToClient.writeBytes(playersToClient + '\n');
+                
+            } else if (clientSentence.startsWith("chat")) {
+                
+               outToClient.writeBytes(clientSentence + '\n');
+                
+                
             }
             else
             {
                 outToClient.writeBytes("Invalid Command!" + '\n');
+                
             }
         } catch (IOException ex) {
             Logger.getLogger(NetworkCommunicationThread.class.getName()).log(Level.SEVERE, null, ex);
