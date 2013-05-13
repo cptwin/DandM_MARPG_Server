@@ -46,12 +46,11 @@ public class NetworkCommunicationThread implements Runnable {
     public void run() {
         try {
             String clientSentence;
-            String capitalizedSentence;
             Socket connectionSocket = welcomeSocket;
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
             clientSentence = inFromClient.readLine(); //gets the input from the client
-            if (connectionSocket.getInetAddress() != null)
+            if (connectionSocket.getInetAddress() != null && !clientSentence.startsWith("movingentities"))
             {
                 System.out.println("Received: " + clientSentence + " from: " + connectionSocket.getInetAddress());
             }
@@ -143,24 +142,10 @@ public class NetworkCommunicationThread implements Runnable {
                                         player.setXCoOrd(Integer.parseInt(str_array[2]));
                                         player.setYCoOrd(Integer.parseInt(str_array[3]));
                                         player.updateTimestamp();
-                                    }
-                                    playersToClient += "move" + player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd();
-                                    //outToClient.writeBytes("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd() + '\n');
-                                    //System.out.println("Player Move: " + str_array[1] + " " + player.getXCoOrd() + "," + player.getYCoOrd());
-                                    
+                                    }                                    
                                 }
                             }
                         }
-                        for (Entities e : core.returnEntityArray()) {
-                            if (e instanceof Player) {
-                                Player player = (Player) e;
-                                if (!player.getName().equals(str_array[1])) {
-                                    playersToClient += "%otherplayer" + player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd();
-                                }
-                            }                            
-                        }
-                        outToClient.writeBytes(playersToClient + '\n');
-                        System.out.println(playersToClient);
                     }
                     else
                     {
@@ -189,17 +174,45 @@ public class NetworkCommunicationThread implements Runnable {
                     outToClient.writeBytes("Pong" + '\n');
                 }
             }
-            else if (clientSentence.startsWith("otherplayers"))
+            else if (clientSentence.startsWith("movingentities"))
             {
-                String playersToClient = "otherplayers";
+                String[] str_array = clientSentence.split(" ");
+                String playersToClient = "movingentities";
                 for (Entities e : core.returnEntityArray()) {
                             if (e instanceof Player) {
                                 Player player = (Player) e;
-                                playersToClient += player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd() + " ";
+                                if(!player.getName().equalsIgnoreCase(str_array[1]))
+                                {
+                                    playersToClient += player.getName() + "/" + player.getXCoOrd() + "/" + player.getYCoOrd() + " ";
+                                }
                             }
                 }
-                //System.out.println(playersToClient);
                 outToClient.writeBytes(playersToClient + '\n');
+            }
+            else if (clientSentence.startsWith("chat"))
+            {
+                while(true)
+                {
+                    System.out.println("Reached it!");
+                    clientSentence = inFromClient.readLine();
+                    String sentence = clientSentence;
+                    sentence = sentence.replaceFirst("chat", "");
+                    String[] str_array = sentence.split("::");
+                    core.addToChatSocketArray(connectionSocket);
+                    if(str_array.length == 2)
+                    {
+                        for(Socket e : core.returnChatSocketArray())
+                        {
+                            DataOutputStream output = new DataOutputStream(e.getOutputStream());
+                            output.writeBytes("rchat" + str_array[0] + ": " + str_array[1] + '\n');
+                        }
+                    }
+                    else
+                    {
+                        DataOutputStream output = new DataOutputStream(connectionSocket.getOutputStream());
+                        output.writeBytes("" + '\n');
+                    }
+                }
             }
             else
             {
