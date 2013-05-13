@@ -189,36 +189,28 @@ public class NetworkCommunicationThread implements Runnable {
                 }
                 outToClient.writeBytes(playersToClient + '\n');
                 
-            } else if (clientSentence.startsWith("chat")) {
-                
-               outToClient.writeBytes(clientSentence + '\n');
-                
-                
             }
             else if (clientSentence.startsWith("chat"))
             {
-                while(true)
-                {
-                    System.out.println("Reached it!");
-                    clientSentence = inFromClient.readLine();
                     String sentence = clientSentence;
+                    System.out.println(sentence);
                     sentence = sentence.replaceFirst("chat", "");
                     String[] str_array = sentence.split("::");
-                    core.addToChatSocketArray(connectionSocket);
                     if(str_array.length == 2)
                     {
-                        for(Socket e : core.returnChatSocketArray())
+                        for(ChatClient c : core.chatSockets)
                         {
-                            DataOutputStream output = new DataOutputStream(e.getOutputStream());
-                            output.writeBytes("rchat" + str_array[0] + ": " + str_array[1] + '\n');
+                            System.out.println("rchat" + str_array[0] + ": " + str_array[1] + '\n');
+                            c.outToClient.writeBytes("rchat" + str_array[0] + ": " + str_array[1] + '\n');
                         }
                     }
                     else
                     {
-                        DataOutputStream output = new DataOutputStream(connectionSocket.getOutputStream());
-                        output.writeBytes("" + '\n');
+                        ChatClient c = new ChatClient(connectionSocket, outToClient, inFromClient);
+                        core.chatSockets.add(c);
+                        DataOutputStream output = new DataOutputStream(c.chatSocket.getOutputStream());
+                        output.writeBytes("rchat" + "Joined the server!" + '\n');
                     }
-                }
             }
             else
             {

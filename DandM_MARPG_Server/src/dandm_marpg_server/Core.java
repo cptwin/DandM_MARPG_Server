@@ -5,9 +5,9 @@
 package dandm_marpg_server;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,7 +22,7 @@ public class Core {
     
     public MySQLDatabase databaseInterface;
     private HashSet<Entities> entities;
-    private HashSet<Socket> chatSockets;
+    public ArrayList<ChatClient> chatSockets;
     
     
     /**
@@ -32,7 +32,7 @@ public class Core {
     public Core()
     {
         this.entities = new HashSet();
-        this.chatSockets = new HashSet();
+        this.chatSockets = new ArrayList();
         databaseInterface = new MySQLDatabase(); //creates a new database object that all threads will pool into
         if (databaseInterface.resetIsLoggedIn())
         {
@@ -61,21 +61,6 @@ public class Core {
     public synchronized HashSet<Entities> returnEntityArray()
     {
         return entities;
-    }
-    
-    public synchronized void addToChatSocketArray(Socket e)
-    {
-        chatSockets.add(e);
-    }
-    
-    public synchronized void removeFromChatSocketArray(Socket e)
-    {
-        chatSockets.remove(e);
-    }
-    
-    public synchronized HashSet<Socket> returnChatSocketArray()
-    {
-        return chatSockets;
     }
     
     private void startListening() throws IOException
