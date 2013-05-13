@@ -188,6 +188,12 @@ public class NetworkCommunicationThread implements Runnable {
                             }
                 }
                 outToClient.writeBytes(playersToClient + '\n');
+                
+            } else if (clientSentence.startsWith("chat")) {
+                
+               outToClient.writeBytes(clientSentence + '\n');
+                
+                
             }
             else if (clientSentence.startsWith("chat"))
             {
@@ -217,6 +223,7 @@ public class NetworkCommunicationThread implements Runnable {
             else
             {
                 outToClient.writeBytes("Invalid Command!" + '\n');
+                
             }
         } catch (IOException ex) {
             Logger.getLogger(NetworkCommunicationThread.class.getName()).log(Level.SEVERE, null, ex);
